@@ -531,7 +531,7 @@ function render(d){const sol=d.sol_usd,bal=d.balance_sol,st=d.start_sol??1;
   const op=Array.isArray(d.open)?d.open:[];
   if(op.length){h+=`<br>+ in open positions: <b>${op.map(p=>'$'+esc(p.symbol)).join(', ')}</b> · cost <b>${(+d.positions_cost_sol||0).toFixed(4)}</b> SOL`;
    if(d.positions_quote_sol!=null)h+=` · watcher sell quote <b>${(+d.positions_quote_sol).toFixed(4)}</b> SOL @ ${tm(d.positions_quote_ts)} WIB`;
-   h+=d.unrealized_sol!=null?`<br>unrealized (open, not in realized): <b class="${d.unrealized_sol>=0?'up':'dn'}">${sgn(d.unrealized_sol,4)} SOL (${pp(d.unrealized_pct)})</b>`:'<br>unrealized: menunggu quote'}
+   h+=d.unrealized_sol!=null?`<br>unrealized (open, not in realized): <b class="${d.unrealized_sol>=0?'up':'dn'}">${sgn(d.unrealized_sol,4)} SOL (${pp(d.unrealized_pct)})</b>`:'<br>unrealized: awaiting quote'}
   $('posv').innerHTML=h}
  const rp=d.realized_pnl_sol;scramble($('rpnl'),sgn(rp));$('rpnl').className=rp>=0?'up':'dn';
  const vs=bal!=null?(bal-st)/st*100:null;scramble($('rpct'),pc(vs));$('rpct').className=vs>=0?'up':'dn';
@@ -750,7 +750,7 @@ function opBar(o,R){const lo=R.backstop_mult!=null?Math.round((R.backstop_mult-1
 function opCard(o,R){const has=o.pnl_pct!=null,k=has?(o.pnl_pct>=0?'up':'dn'):'';const tp1=o.tp1_taken;
  let h=`<div class="opc ${k}"><div class="oh"><b>$${esc(o.symbol)}</b><span>entry ${tmS(o.opened)} WIB · held <i class="age" data-t="${o.opened}">${ago(o.opened)}</i></span><span class="qa" data-q="${o.quote_ts||''}">${o.quote_ts?'quote '+ago(o.quote_ts)+' ago':'—'}</span></div>`;
  if(has)h+=`<div class="om"><div class="big">${pp(o.pnl_pct)}</div><div class="sol">${sgn(o.pnl_sol,4)} SOL</div></div>`;
- else h+=`<div class="wait">menunggu quote… (watcher belum kirim quote untuk token ini)</div>`;
+ else h+=`<div class="wait">awaiting quote… (the watcher hasn't sent a quote for this token yet)</div>`;
  h+=`<div class="okv">cost <b>${(+o.cost_sol).toFixed(4)}</b> SOL`+(has?` · value now <b>${(+o.value_sol).toFixed(4)}</b> SOL${o.realized_sol?` (incl. ${(+o.realized_sol).toFixed(4)} already sold)`:''}`:'')+
   (o.peak_pct!=null?` · peak <b>${pp(o.peak_pct)}</b>`:'')+(o.chart_pct!=null?` · chart <b>${pp(o.chart_pct)}</b>`:'')+`</div>`;
  h+=opSpark(o.hist)+opBar(o,R);
@@ -763,9 +763,9 @@ function renderOpen(d){const op=Array.isArray(d.open)?d.open:[],R=d.exit_rules||
  $('opst').textContent=op.length?`${op.length} open · live`:'flat';$('opst').className='rt'+(op.length?' up':'');
  if(key!==opKey){opKey=key;
   if(op.length)$('opb').innerHTML=op.map(o=>opCard(o,R)).join('');
-  else{const c=d.last_closed;$('opb').innerHTML=`<div class="opem"><b>Ga ada posisi kebuka</b><span>bot lagi nunggu setup berikutnya — kartu muncul otomatis begitu ada BUY.</span>${c?`<span>last closed: <b class="${(c.pnl||0)>=0?'up':'dn'}">$${esc(c.symbol)} ${c.pct!=null?pp(c.pct):''} (${sgn(+c.pnl||0,4)} SOL)</b> · ${esc(c.reason||'')} · ${tmS(c.ts)} WIB</span>`:''}</div>`}}
+  else{const c=d.last_closed;$('opb').innerHTML=`<div class="opem"><b>No open positions</b><span>The bot is waiting for its next setup. A card appears here automatically on the next BUY.</span>${c?`<span>last closed: <b class="${(c.pnl||0)>=0?'up':'dn'}">$${esc(c.symbol)} ${c.pct!=null?pp(c.pct):''} (${sgn(+c.pnl||0,4)} SOL)</b> · ${esc(c.reason||'')} · ${tmS(c.ts)} WIB</span>`:''}</div>`}}
  $('oprl').innerHTML=rulesTxt(R);
- const ch=$('uchip');if(d.unrealized_sol!=null&&op.length){ch.hidden=false;ch.style.setProperty('--k',d.unrealized_sol>=0?'var(--g)':'var(--r)');$('hunr').textContent=`${sgn(d.unrealized_sol,4)} (${pp(d.unrealized_pct)})`}else if(op.length){ch.hidden=false;ch.style.removeProperty('--k');$('hunr').textContent='menunggu quote'}else ch.hidden=true}
+ const ch=$('uchip');if(d.unrealized_sol!=null&&op.length){ch.hidden=false;ch.style.setProperty('--k',d.unrealized_sol>=0?'var(--g)':'var(--r)');$('hunr').textContent=`${sgn(d.unrealized_sol,4)} (${pp(d.unrealized_pct)})`}else if(op.length){ch.hidden=false;ch.style.removeProperty('--k');$('hunr').textContent='awaiting quote'}else ch.hidden=true}
 function opTick(){document.querySelectorAll('.opc .age').forEach(e=>e.textContent=ago(e.dataset.t));
  document.querySelectorAll('.opc .qa').forEach(e=>{const q=e.dataset.q;if(!q)return;e.textContent='quote '+ago(q)+' ago';e.classList.toggle('stale',(Date.now()-new Date(q))>90000)})}
 setInterval(opTick,1000);
