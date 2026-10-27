@@ -32,11 +32,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(6,8,10,.88);backdrop-fil
 /* ticker */
 .tape{border-bottom:1px solid var(--ln);background:#080b0d;overflow:hidden;white-space:nowrap;position:relative;height:30px}
 .tape::before{content:"ON RADAR";position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;padding:0 10px;background:var(--g);color:#03140a;font-weight:800;font-size:10px;letter-spacing:1.5px}
-.tape-in{display:inline-flex;height:30px;align-items:center;padding-left:100%;animation:tape linear infinite;animation-duration:60s;will-change:transform}
+.tape-in{display:inline-flex;height:30px;align-items:center;padding-left:96px;animation:tape linear infinite;animation-duration:60s;will-change:transform}
 .tape-in span{margin-right:26px;font-size:12px}.tape-in span i{font-style:normal;color:var(--dim)}
-@keyframes tape{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes tape{from{transform:translateX(0)}to{transform:translateX(calc(-50% + 48px))}}
 /* grid */
-.grid{display:grid;gap:12px;margin-top:12px;grid-template-columns:1fr;grid-template-areas:"pnl" "stats" "log" "funnel" "trades"}
+.grid{display:grid;gap:12px;margin-top:12px;grid-template-columns:1fr;grid-template-areas:"pnl" "log" "stats" "funnel" "trades"}
 @media(min-width:900px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-areas:"pnl log" "stats log" "funnel log" "trades trades"}.ttl b{font-size:20px}}
 .pnl{grid-area:pnl}.stats{grid-area:stats}.log{grid-area:log}.funnel{grid-area:funnel}.trades{grid-area:trades}
 .pn{background:linear-gradient(180deg,var(--pn2),var(--pn));border:1px solid var(--ln);position:relative}
@@ -223,21 +223,21 @@ function buildTape(d){const m=new Map();for(const r of (d.scan||[]))if(r.k==='ch
  let rows=[...m.values()].filter(r=>r.v==='on radar');const radar=rows.length>0;if(!radar)rows=[...m.values()];rows=rows.slice(-14).reverse();
  if(!rows.length)return '<span><i>no scans yet</i></span>';
  return rows.map(r=>`<span><b>$${esc(r.sym)}</b> <i>MC</i> ${kf(r.mc)} <b class="${(r.chg5??0)>=0?'up':'dn'}">${pc(r.chg5)}</b> <i>${r.b5??'–'}B/${r.s5??'–'}S</i>${r.migr?' <i>· DEX</i>':''}</span>`).join('')}
-function setTape(html){const el=$('tape');el.innerHTML=html;el.style.animationDuration=Math.max(25,el.scrollWidth/55)+'s'}
+function setTape(html){const el=$('tape');el.innerHTML=html+html;el.style.animationDuration=Math.max(20,el.scrollWidth/2/45)+'s'}
 $('tape').addEventListener('animationiteration',()=>{if(tapePending){setTape(tapePending);tapePending=null}});
 
 /* ---------- charts ---------- */
 function spark(d){const ev=(d.events||[]).filter(e=>e.balance!=null);const svg=$('spark');if(!ev.length){svg.innerHTML='';return}
  const pts=[{t:+new Date(ev[0].ts)-60000,b:d.start_sol??1}];ev.forEach(e=>pts.push({t:+new Date(e.ts),b:e.balance,e}));
  pts.push({t:Math.max(+new Date(d.generated_at),pts[pts.length-1].t+1),b:d.balance_sol??pts[pts.length-1].b});
- const t0=pts[0].t,t1=pts[pts.length-1].t,bs=pts.map(p=>p.b),lo=Math.min(...bs,d.start_sol??1)-.02,hi=Math.max(...bs,d.start_sol??1)+.02;
+ const t0=pts[0].t,t1=pts[pts.length-1].t,bs=pts.map(p=>p.b),lo=Math.min(...bs,d.start_sol??1)-.02,hi=Math.max(...bs,d.start_sol??1)+.07;
  const X=t=>(t-t0)/(t1-t0||1)*396+2,Y=b=>104-(b-lo)/(hi-lo||1)*98;
  let path='M'+X(pts[0].t)+','+Y(pts[0].b);for(let i=1;i<pts.length;i++)path+=`H${X(pts[i].t).toFixed(1)}V${Y(pts[i].b).toFixed(1)}`;
  const ys=Y(d.start_sol??1);
  let dots=pts.filter(p=>p.e&&p.e.type==='sell'&&p.e.full).map(p=>`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.b).toFixed(1)}" r="3.2" fill="${(p.e.pnl_total??p.e.pnl??0)>=0?'#3dff8f':'#ff3d63'}"/>`).join('');
  svg.innerHTML=`<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38d6ff" stop-opacity=".28"/><stop offset="1" stop-color="#38d6ff" stop-opacity="0"/></linearGradient></defs>
  <line x1="0" x2="400" y1="${ys}" y2="${ys}" stroke="#3b4a51" stroke-dasharray="3 4" stroke-width="1" vector-effect="non-scaling-stroke"/>
- <text x="4" y="${ys-4}" fill="#5e6f76" font-size="9" font-family="JetBrains Mono">start ${(d.start_sol??1).toFixed(2)}</text>
+ <text x="396" text-anchor="end" y="${ys-4}" fill="#5e6f76" font-size="9" font-family="JetBrains Mono">start ${(d.start_sol??1).toFixed(2)}</text>
  <path d="${path}V110H${X(pts[0].t)}Z" fill="url(#sg)"/>
  <path d="${path}" fill="none" stroke="#38d6ff" stroke-width="1.6" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px rgba(56,214,255,.6))"/>${dots}`}
 function bars(d){const st=d.stats||[];const svg=$('bars');const v=[];for(let i=1;i<st.length;i++){const dt=(new Date(st[i].t)-new Date(st[i-1].t))/60000;const dc=st[i].creates-st[i-1].creates;if(dt>0&&dc>=0)v.push(dc/dt)}
