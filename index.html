@@ -269,7 +269,8 @@ function setCounters(d,first){const h=d.hb||{};const vals={new:h.creates_total,m
  if(d.sol_usd)$('solp').textContent=`SOL $${(+d.sol_usd).toFixed(2)}`}
 function tickCounters(now){for(const k in CT){const c=CT[k];if(c.v==null)continue;const t=c.t0?Math.min(1,(now-c.t0)/ctDur):1;const nv=c.f+(c.t-c.f)*t;const el=$('c_'+k);const txt=Math.round(nv).toLocaleString('en-US');
   if(el.textContent!==txt){if(el.textContent!=='–'&&Math.round(nv)>Math.round(c.v)){el.classList.remove('up');void el.offsetWidth;el.classList.add('up')}el.textContent=txt}c.v=nv}
- if(now-lastHbT>1000&&D){lastHbT=now;const ts=[D.hb?.updated_at,D.watcher_last].filter(Boolean).map(x=>new Date(x).getTime());const ago=ts.length?Math.max(0,(Date.now()-Math.max(...ts))/1000):null;
+}
+function updHb(){if(D){const ts=[D.hb?.updated_at,D.watcher_last].filter(Boolean).map(x=>new Date(x).getTime());const ago=ts.length?Math.max(0,(Date.now()-Math.max(...ts))/1000):null;
   const pl=$('pl');pl.className=ago==null||ago>900?'rd':ago>240?'am':'';$('hbt').textContent=ago==null?'· heartbeat –':`· heartbeat ${ago<90?Math.round(ago)+'s':Math.floor(ago/60)+'m '+Math.round(ago%60)+'s'} ago`}}
 // ---------- drawing
 function drawBg(){const c=document.createElement('canvas');const k=cv.width/MW;c.width=cv.width;c.height=cv.height;const g=c.getContext('2d');g.scale(k,k);
@@ -325,7 +326,7 @@ function frame(now){pump(now);freeSkips();
  pumpScan(now);tickCounters(now);
  if(LIVE&&now%1000<20)$('clk').textContent=nowWib();
  requestAnimationFrame(frame)}
-document.fonts.ready.then(()=>{sizeCanvas();buildPanel();AG.forEach(a=>setAgent(a.k,'Starting replay…','0',''));setAgent('scan',null,'0','evaluated');renderCard();poll(true);setInterval(()=>poll(false),5000);setInterval(()=>{if(LIVE)$('clk').textContent=nowWib()},1000);requestAnimationFrame(frame)});
+document.fonts.ready.then(()=>{sizeCanvas();buildPanel();AG.forEach(a=>setAgent(a.k,'Starting replay…','0',''));setAgent('scan',null,'0','evaluated');renderCard();poll(true);setInterval(()=>poll(false),5000);setInterval(()=>{if(LIVE)$('clk').textContent=nowWib();updHb()},1000);requestAnimationFrame(frame)});
 </script>
 </body>
 </html>
