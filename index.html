@@ -210,6 +210,28 @@ footer b{color:var(--dim)}
 .sh-b div{display:grid;grid-template-columns:64px 1fr;gap:8px;padding:6px 0;border-top:1px dashed var(--ln);font-size:11.5px;line-height:1.4;animation:rowin .4s var(--ease) both;animation-delay:calc(var(--i)*35ms)}
 .sh-b div span{color:var(--dim)}.sh-b .emp{display:block;color:var(--dim)}
 
+.opp{margin-bottom:14px}
+.opb{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:10px;padding:12px}
+.opc{border:1px solid var(--ln2);background:linear-gradient(180deg,rgba(14,20,24,.95),rgba(8,11,13,.95));padding:12px 12px 10px;position:relative;overflow:hidden;--k:var(--dim)}
+.opc.up{--k:var(--g)}.opc.dn{--k:var(--r)}.opc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--k);box-shadow:0 0 14px var(--k)}
+.opc .oh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.opc .oh b{font-family:var(--disp);font-size:16px;color:#fff;letter-spacing:.5px}
+.opc .oh span{font-size:11px;color:var(--dim)}.opc .oh .qa{margin-left:auto;font-size:10.5px}.qa.stale{color:var(--a)}
+.opc .om{display:flex;align-items:baseline;gap:12px;margin:6px 0 2px}
+.opc .big{font-family:var(--disp);font-size:38px;font-weight:800;color:var(--k);text-shadow:0 0 18px color-mix(in srgb,var(--k) 45%,transparent);font-variant-numeric:tabular-nums;line-height:1.05}
+.opc .sol{font-size:15px;font-weight:700;color:var(--k);white-space:nowrap}.opc .wait{font-size:15px;color:var(--a);padding:10px 0}
+.opc .okv{font-size:11px;color:var(--dim);line-height:1.6}.opc .okv b{color:var(--tx);font-weight:600}
+.opc svg.osp{display:block;width:100%;height:46px;margin:6px 0 4px}
+.obar{position:relative;height:30px;margin:6px 0 2px}
+.obar .tr{position:absolute;left:0;right:0;top:9px;height:6px;background:linear-gradient(90deg,rgba(255,61,99,.55),rgba(255,61,99,.15) var(--z),rgba(61,255,143,.15) var(--z),rgba(61,255,143,.55));border:1px solid var(--ln2)}
+.obar .tk{position:absolute;top:5px;width:1px;height:14px;background:var(--dim)}.obar .tl{position:absolute;top:20px;font-size:9px;color:var(--dim);transform:translateX(-50%);white-space:nowrap}
+.obar .tl.l{transform:none}.obar .tl.r{transform:translateX(-100%)}
+.obar .mk{position:absolute;top:2px;width:4px;height:20px;margin-left:-2px;background:var(--k);box-shadow:0 0 10px var(--k);transition:left .8s var(--ease)}
+.obar .pk{position:absolute;top:4px;width:0;height:0;margin-left:-4px;border:4px solid transparent;border-top-color:var(--a)}
+.opc .ost{font-size:10.5px;color:var(--dim);line-height:1.55;margin-top:4px}.ost .on{color:var(--a)}
+.opem{padding:16px 14px;display:flex;flex-direction:column;gap:6px}.opem b{font-family:var(--disp);font-size:18px;color:#fff}.opem span{font-size:12px;color:var(--dim)}
+.oprl{font-size:10.5px;color:var(--dim);padding:0 14px 12px;line-height:1.6}.oprl b{color:var(--tx);font-weight:600}
+.chip.un{border-color:var(--k,var(--ln2))}.chip.un b{color:var(--k)}
+.chip[hidden]{display:none}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}#radar,#bgc,#boot{display:none}body.pre .pn,body.pre header,body.pre .tape{opacity:1}}
 </style></head>
 <body class="pre">
@@ -223,6 +245,7 @@ footer b{color:var(--dim)}
     <div class="chip hb"><span class="dot" id="dot"></span><span id="hbt">HB –</span></div>
     <div class="chip">SOL <b id="solp">–</b></div>
     <div class="chip">BAL <b id="hbal">–</b></div>
+    <div class="chip un" id="uchip" hidden>UNRL <b id="hunr"></b></div>
     <div class="chip hide-s">WIB <b id="clk">--:--:--</b></div>
   </div>
 </div></header>
@@ -232,6 +255,11 @@ footer b{color:var(--dim)}
   <div class="ph"><b>■</b>Trading floor · agents at work<span class="rt" id="ofs">live</span></div>
   <div class="ofw" id="ofw"><canvas id="ofc"></canvas><div id="ofl"></div></div>
   <div class="ofhint"><span>tap an agent → its real recent actions</span><span>every move = a real row from the bot's logs</span></div>
+</section>
+<section class="pn opp" style="--d:.03s">
+  <div class="ph"><b>■</b>Open positions · unrealized PnL<span class="rt" id="opst">–</span></div>
+  <div class="opb" id="opb"></div>
+  <div class="oprl" id="oprl"></div>
 </section>
 <div class="grid">
   <section class="pn pnl" style="--d:.05s">
@@ -496,12 +524,14 @@ let prevBal=null;
 function render(d){const sol=d.sol_usd,bal=d.balance_sol,st=d.start_sol??1;
  $('solp').textContent=sol?'$'+sol.toFixed(2):'–';$('hbal').textContent=bal!=null?bal.toFixed(4):'–';
  if(bal!=null){odo($('bal'),bal.toFixed(4),true);if(prevBal!=null&&bal!==prevBal&&!RM){const n=$('bal');n.classList.remove('fu','fd');n.offsetWidth;n.classList.add(bal>prevBal?'fu':'fd')}prevBal=bal}
+ renderOpen(d);
  $('balusd').textContent=bal!=null&&sol?'≈ $'+(bal*sol).toFixed(2):'';
  {const be=d.balance_event,src=d.balance_src==='rpc'?'on-chain SOL reading logged by the bot':d.balance_src==='trade'?`after ${be?be.type.toUpperCase()+' $'+esc(be.symbol):'last trade'} (logged)`:'start bankroll';
   let h=`<span class="src">SOL in wallet · ${src}${d.balance_ts?' · '+tm(d.balance_ts)+' WIB':''}</span>`;
   const op=Array.isArray(d.open)?d.open:[];
   if(op.length){h+=`<br>+ in open positions: <b>${op.map(p=>'$'+esc(p.symbol)).join(', ')}</b> · cost <b>${(+d.positions_cost_sol||0).toFixed(4)}</b> SOL`;
-   if(d.positions_quote_sol!=null)h+=` · watcher sell quote <b>${(+d.positions_quote_sol).toFixed(4)}</b> SOL @ ${tm(d.positions_quote_ts)} WIB`}
+   if(d.positions_quote_sol!=null)h+=` · watcher sell quote <b>${(+d.positions_quote_sol).toFixed(4)}</b> SOL @ ${tm(d.positions_quote_ts)} WIB`;
+   h+=d.unrealized_sol!=null?`<br>unrealized (open, not in realized): <b class="${d.unrealized_sol>=0?'up':'dn'}">${sgn(d.unrealized_sol,4)} SOL (${pp(d.unrealized_pct)})</b>`:'<br>unrealized: menunggu quote'}
   $('posv').innerHTML=h}
  const rp=d.realized_pnl_sol;scramble($('rpnl'),sgn(rp));$('rpnl').className=rp>=0?'up':'dn';
  const vs=bal!=null?(bal-st)/st*100:null;scramble($('rpct'),pc(vs));$('rpct').className=vs>=0?'up':'dn';
@@ -593,7 +623,8 @@ function ofOverlay(){const L=$('ofl');L.innerHTML='';const s=OF.scr,b=OF.board;
 function ofStats(d){if(!OF.ready)return;const hb=d.hb||{},sc=d.scan||[],ev=d.events||[];const T=(id,h)=>{const e=$('as_'+id);if(e)e.innerHTML=h};
  T('lis',`${(hb.creates_total??0).toLocaleString('en-US')} launches`);T('scn',`${hb.tracked_alive??'–'} tracked live`);
  T('rug',`${sc.filter(r=>r.dev_sold).length} dev-sold flags`);T('trd',`${ev.filter(e=>e.type==='buy').length} buys · ${ev.filter(e=>e.type==='skip').length} passes`);
- const op=Array.isArray(d.open)?d.open.length:(d.open||0);T('rsk',`${d.trades??0} exits · ${op} open`);T('acc',d.balance_sol!=null?`${d.balance_sol.toFixed(4)} SOL`:'–');
+ const op=Array.isArray(d.open)?d.open.length:(d.open||0);{const oo=(Array.isArray(d.open)?d.open:[]).filter(o=>o.pnl_pct!=null);T('rsk',oo.length?oo.map(o=>`<span class="${o.pnl_pct>=0?'up':'dn'}">$${esc(o.symbol)} ${pp(o.pnl_pct)}</span>`).join(' '):`${d.trades??0} exits · ${op} open`);
+  OF.lq=OF.lq||{};oo.forEach(o=>{if(OF.lq[o.symbol]&&OF.lq[o.symbol]!==o.quote_ts){say(AGS[4],`$${esc(o.symbol)} <em class="${o.pnl_pct>=0?'up':'dn'}">${pp(o.pnl_pct)}</em> <s>quote</s> ${(+o.value_sol).toFixed(3)} SOL`,0,2400);AGS[4].act=1}OF.lq[o.symbol]=o.quote_ts})}T('acc',d.balance_sol!=null?`${d.balance_sol.toFixed(4)} SOL`:'–');
  const st=d.start_sol??1,vs=d.balance_sol!=null?(d.balance_sol-st)/st*100:null;
  $('wsc').innerHTML=`<small>WALLET</small><b>${d.balance_sol!=null?d.balance_sol.toFixed(4):'–'}</b> SOL<br><span class="${vs>=0?'up':'dn'}">${pc(vs)}</span> <span style="color:var(--dim)">${d.wins}W/${d.losses}L</span>`;
  const rad=(tapeItems||[]).slice(-3).reverse();$('wbd').innerHTML=`<small>ON RADAR</small>${rad.length?rad.slice(0,OF.wide?3:2).map(r=>`<span>$${esc(r.sym)}</span>`).join(''):'<span>—</span>'}`;
@@ -701,6 +732,43 @@ function agentLog(id){const d=D||{},sc=d.scan||[],ev=d.events||[],R=(ts,h)=>({ts
  return L.sort((a,b)=>a.ts<b.ts?1:-1).slice(0,id==='rug'?18:14)}
 $('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'||e.target.id==='shX')$('sheet').classList.remove('on')});addEventListener('keydown',e=>{if(e.key==='Escape')$('sheet').classList.remove('on')});
 if('IntersectionObserver'in window)new IntersectionObserver(es=>{OF.vis=es[0].isIntersecting}).observe($('ofw'));
+
+/* ======== open positions (real watcher quotes) ======== */
+const ago=ts=>{if(!ts)return'–';const s=Math.max(0,(Date.now()-new Date(ts))/1000|0);return s<60?s+'s':s<3600?(s/60|0)+'m':(s/3600|0)+'h '+((s%3600)/60|0)+'m'};
+const pp=v=>v==null?'–':(v>=0?'+':'')+v.toFixed(1)+'%';
+function rulesTxt(R){if(!R||!R.tp1_mult)return'';const x=m=>Math.round((m-1)*100);const cl=R.cl_mult>=1?`chart below entry`:`chart ≤ ${x(R.cl_mult)}%`;
+ return `<b>Exit rules</b> (live from watcher.py, checks every ${R.interval_sec||20}s): cut loss if held ≥ ${(R.cl_hold_sec||0)/3600}h and ${cl} (${R.cl_confirm||2} checks) · rug backstop chart ${x(R.rug_mult)}% or sell quote ${x(R.backstop_mult)}% · TP1 +${x(R.tp1_mult)}% sells half · TP2 +${x(R.tp2_mult)}% sells the rest · after TP1 trailing stop at ${Math.round(R.trail_frac*100)}% of peak · ${(R.time_stop_sec||0)/3600}h time stop if value < +${x(R.time_stop_mult)}%`}
+function opSpark(h){const pts=(h||[]).filter(x=>x[1]!=null);if(pts.length<2)return'';const W=300,H=46,v=pts.map(x=>x[1]),lo=Math.min(0,...v),hi=Math.max(0,...v),sp=(hi-lo)||1;
+ const X=i=>i/(pts.length-1)*(W-4)+2,Y=y=>H-3-(y-lo)/sp*(H-6);const d=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(p[1]).toFixed(1)).join('');const last=v[v.length-1],c=last>=0?'var(--g)':'var(--r)';
+ return `<svg class="osp" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#3b4a51" stroke-dasharray="3 3"/><path d="${d}L${X(pts.length-1).toFixed(1)},${Y(lo).toFixed(1)}L2,${Y(lo).toFixed(1)}Z" fill="${c}" opacity=".08"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.6" vector-effect="non-scaling-stroke"/><circle cx="${X(pts.length-1).toFixed(1)}" cy="${Y(last).toFixed(1)}" r="2.5" fill="${c}"/></svg>`}
+function opBar(o,R){const lo=R.backstop_mult!=null?Math.round((R.backstop_mult-1)*100):-75,hi=R.tp2_mult?Math.round((R.tp2_mult-1)*100):200,tp1=R.tp1_mult?Math.round((R.tp1_mult-1)*100):100;
+ const P=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));const z=P(0);
+ let h=`<div class="obar" style="--z:${z}%"><div class="tr"></div>`;
+ [[lo,'rug '+lo+'%','l'],[0,'entry',''],[tp1,'TP1 +'+tp1+'%',''],[hi,'TP2 +'+hi+'%','r']].forEach(([v,l,c])=>{h+=`<i class="tk" style="left:${P(v)}%"></i><span class="tl ${c}" style="left:${P(v)}%">${l}</span>`});
+ if(o.peak_pct!=null)h+=`<i class="pk" style="left:${P(o.peak_pct)}%" title="peak"></i>`;
+ if(o.pnl_pct!=null)h+=`<i class="mk" style="left:${P(o.pnl_pct)}%"></i>`;return h+'</div>'}
+function opCard(o,R){const has=o.pnl_pct!=null,k=has?(o.pnl_pct>=0?'up':'dn'):'';const tp1=o.tp1_taken;
+ let h=`<div class="opc ${k}"><div class="oh"><b>$${esc(o.symbol)}</b><span>entry ${tmS(o.opened)} WIB · held <i class="age" data-t="${o.opened}">${ago(o.opened)}</i></span><span class="qa" data-q="${o.quote_ts||''}">${o.quote_ts?'quote '+ago(o.quote_ts)+' ago':'—'}</span></div>`;
+ if(has)h+=`<div class="om"><div class="big">${pp(o.pnl_pct)}</div><div class="sol">${sgn(o.pnl_sol,4)} SOL</div></div>`;
+ else h+=`<div class="wait">menunggu quote… (watcher belum kirim quote untuk token ini)</div>`;
+ h+=`<div class="okv">cost <b>${(+o.cost_sol).toFixed(4)}</b> SOL`+(has?` · value now <b>${(+o.value_sol).toFixed(4)}</b> SOL${o.realized_sol?` (incl. ${(+o.realized_sol).toFixed(4)} already sold)`:''}`:'')+
+  (o.peak_pct!=null?` · peak <b>${pp(o.peak_pct)}</b>`:'')+(o.chart_pct!=null?` · chart <b>${pp(o.chart_pct)}</b>`:'')+`</div>`;
+ h+=opSpark(o.hist)+opBar(o,R);
+ const clAt=R.cl_hold_sec?new Date(+new Date(o.opened)+R.cl_hold_sec*1000).toISOString():null,tsAt=R.time_stop_sec?new Date(+new Date(o.opened)+R.time_stop_sec*1000).toISOString():null;
+ h+=`<div class="ost">${tp1?'<span class="on">TP1 taken → trailing stop armed</span> · ':''}${clAt?`cut-loss check from ${tmS(clAt)} WIB`:''}${tsAt?` · time stop ${tmS(tsAt)} WIB`:''} · ${o.checks} watcher checks · % = (sell quote${o.realized_sol?' + sold':''}) vs cost</div></div>`;
+ return h}
+let opKey='';
+function renderOpen(d){const op=Array.isArray(d.open)?d.open:[],R=d.exit_rules||{};
+ const key=JSON.stringify([op.map(o=>[o.symbol,o.quote_ts,o.check_ts]),d.last_closed&&d.last_closed.ts]);
+ $('opst').textContent=op.length?`${op.length} open · live`:'flat';$('opst').className='rt'+(op.length?' up':'');
+ if(key!==opKey){opKey=key;
+  if(op.length)$('opb').innerHTML=op.map(o=>opCard(o,R)).join('');
+  else{const c=d.last_closed;$('opb').innerHTML=`<div class="opem"><b>Ga ada posisi kebuka</b><span>bot lagi nunggu setup berikutnya — kartu muncul otomatis begitu ada BUY.</span>${c?`<span>last closed: <b class="${(c.pnl||0)>=0?'up':'dn'}">$${esc(c.symbol)} ${c.pct!=null?pp(c.pct):''} (${sgn(+c.pnl||0,4)} SOL)</b> · ${esc(c.reason||'')} · ${tmS(c.ts)} WIB</span>`:''}</div>`}}
+ $('oprl').innerHTML=rulesTxt(R);
+ const ch=$('uchip');if(d.unrealized_sol!=null&&op.length){ch.hidden=false;ch.style.setProperty('--k',d.unrealized_sol>=0?'var(--g)':'var(--r)');$('hunr').textContent=`${sgn(d.unrealized_sol,4)} (${pp(d.unrealized_pct)})`}else if(op.length){ch.hidden=false;ch.style.removeProperty('--k');$('hunr').textContent='menunggu quote'}else ch.hidden=true}
+function opTick(){document.querySelectorAll('.opc .age').forEach(e=>e.textContent=ago(e.dataset.t));
+ document.querySelectorAll('.opc .qa').forEach(e=>{const q=e.dataset.q;if(!q)return;e.textContent='quote '+ago(q)+' ago';e.classList.toggle('stale',(Date.now()-new Date(q))>90000)})}
+setInterval(opTick,1000);
 
 let lastF=performance.now();
 function frame(now){const dt=Math.min(64,now-lastF);lastF=now;pumpLog(now);tickCtr(now);tapeTick(dt);chartAnim(now);ecgTick(dt);pipeTick(dt);bgTick(dt);ofTick(now,dt);requestAnimationFrame(frame)}
