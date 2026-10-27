@@ -40,10 +40,32 @@ body.framed #stage{border-radius:34px;box-shadow:0 30px 80px rgba(15,23,42,.18)}
 #mark{position:absolute;top:-4px;width:2px;height:16px;background:#0f172a;border-radius:2px;opacity:.5}
 #barl{position:absolute;left:18px;right:18px;bottom:10px;font-size:10.5px;color:var(--mut);display:flex;justify-content:space-between;font-weight:600}
 /* map */
-#mapw{position:absolute;top:278px;left:16px;right:16px;height:340px;border-radius:22px;overflow:hidden;background:#eef5ee;box-shadow:inset 0 0 0 1px #e2ebe3}
+#mapw{position:absolute;top:278px;left:16px;right:16px;height:250px;border-radius:22px;overflow:hidden;background:#eef5ee;box-shadow:inset 0 0 0 1px #e2ebe3}
 #map{width:100%;height:100%;display:block}
 #maptag{position:absolute;left:12px;top:10px;font-size:11px;font-weight:700;color:#3f6b4b;background:rgba(255,255,255,.85);padding:4px 9px;border-radius:20px;backdrop-filter:blur(4px)}
 #legend{position:absolute;right:10px;top:10px;display:flex;gap:4px}
+/* live strip */
+#live{position:absolute;top:536px;left:16px;right:16px;height:84px;background:#0f172a;border-radius:20px;color:#e2e8f0;padding:10px 14px 0}
+#lv1{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+#pl{width:10px;height:10px;border-radius:50%;background:#22c55e;position:relative;flex:none}
+#pl:after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid currentColor;color:#22c55e;animation:pulse 1.6s ease-out infinite}
+#pl.am{background:#f59e0b}#pl.am:after{color:#f59e0b}#pl.rd{background:#ef4444}#pl.rd:after{color:#ef4444;animation:none}
+@keyframes pulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+#hbt{color:#94a3b8;font-weight:600}#solp{margin-left:auto;color:#94a3b8;font-weight:600;font-variant-numeric:tabular-nums}
+#lv2{display:flex;margin-top:8px}
+#lv2 div{flex:1;border-left:1px solid #1e293b;padding-left:9px}#lv2 div:first-child{border:0;padding-left:0}
+#lv2 b{display:block;font-size:19px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#lv2 small{font-size:10px;color:#94a3b8;font-weight:600;white-space:nowrap}
+#lv2 b.up{animation:up .5s}@keyframes up{0%{color:#4ade80}100%{color:#fff}}
+/* scan rows */
+.sr{display:flex;align-items:center;gap:8px;height:37px;background:#fff;border-bottom:1px solid var(--line);padding:0 10px;font-size:12px;font-weight:600}
+.sr:first-child{border-radius:14px 14px 0 0}
+.sr.in{animation:sin .55s cubic-bezier(.2,1.1,.3,1)}@keyframes sin{0%{opacity:0;transform:translateX(-24px);background:#f0fdf4}60%{background:#f0fdf4}100%{opacity:1;transform:none;background:#fff}}
+.sr .tg{width:42px;flex:none;text-align:center;font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:3px 0;border-radius:7px}
+.sr .sy{width:84px;flex:none;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr .dt{flex:1;min-width:0;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.sr .tm{width:38px;flex:none;text-align:right;color:#94a3b8;font-size:10.5px;font-variant-numeric:tabular-nums}
+.vp{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:6px;margin-right:4px}
 /* tabs */
 #tabs{position:absolute;top:628px;left:16px;right:16px;height:38px;background:#eef1f4;border-radius:14px;display:flex;padding:4px}
 #tabs div{flex:1;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--mut);border-radius:10px;cursor:pointer;transition:.2s}
@@ -84,12 +106,14 @@ body.framed #stage{border-radius:34px;box-shadow:0 30px 80px rgba(15,23,42,.18)}
     <div id="barl"><span>0</span><span id="startl">start 1.000 SOL</span><span>1.5</span></div>
   </div>
   <div id="mapw"><canvas id="map"></canvas><div id="maptag">Pipeline map · real bot events</div></div>
-  <div id="tabs"><div class="on" data-t="ag">Agents</div><div data-t="tk">Tokens</div><div data-t="me">Me</div></div>
+  <div id="live"><div id="lv1"><span id="pl"></span><span>Bot scanning PumpPortal</span><span id="hbt">· heartbeat –</span><span id="solp"></span></div>
+    <div id="lv2"><div><b id="c_new">–</b><small id="c_rate">new tokens</small></div><div><b id="c_mig">–</b><small>graduated</small></div><div><b id="c_alv">–</b><small>tracking live</small></div><div><b id="c_msg">–</b><small>feed msgs</small></div></div></div>
+  <div id="tabs"><div class="on" data-t="sc">Live scan</div><div data-t="ag">Agents</div><div data-t="tk">Tokens</div><div data-t="me">Me</div></div>
   <div id="panel"></div>
 </div>
 <script>
 const Q=new URLSearchParams(location.search);
-const W=540,H=960,MW=508,MH=340;
+const W=540,H=960,MW=508,MH=250;
 const stage=document.getElementById('stage');
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H);stage.style.transform=`translate(-50%,-50%) scale(${s})`;stage.style.transformOrigin='center';stage.style.left='50%';stage.style.top='50%';document.body.classList.toggle('framed',innerWidth>W*s+40);return s}
 let SCALE=fit();
@@ -107,16 +131,16 @@ function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 // ---------- agents
 const AG=[
- {k:'scan',n:'Scanner',ic:'S',c:'#3b82f6',home:[70,318]},
- {k:'bundle',n:'Bundle Check',ic:'B',c:'#f59e0b',home:[165,320]},
- {k:'safety',n:'RugCheck & Filters',ic:'R',c:'#8b5cf6',home:[255,321]},
- {k:'buy',n:'Buyer',ic:'$',c:'#10b981',home:[345,320]},
- {k:'sell',n:'Watcher / Seller',ic:'W',c:'#ec4899',home:[438,318]},
+ {k:'scan',n:'Scanner',ic:'S',c:'#3b82f6',home:[70,226]},
+ {k:'bundle',n:'Bundle Check',ic:'B',c:'#f59e0b',home:[165,228]},
+ {k:'safety',n:'RugCheck & Filters',ic:'R',c:'#8b5cf6',home:[255,229]},
+ {k:'buy',n:'Buyer',ic:'$',c:'#10b981',home:[345,228]},
+ {k:'sell',n:'Watcher / Seller',ic:'W',c:'#ec4899',home:[438,226]},
 ];
 const A={};AG.forEach((a,i)=>{A[a.k]=Object.assign(a,{x:a.home[0],y:a.home[1],from:null,to:null,t0:0,dur:1,trail:[],status:'idle',stat:'0',sl:'',ph:i*1.3})});
 function go(k,x,y,dur,delay=0){const a=A[k];a.from=[a.x,a.y];a.to=[x,y];a.t0=performance.now()+delay;a.dur=dur;const dx=x-a.x,dy=y-a.y;const s=(hash(k+x+y)%2?1:-1)*0.28;a.cp=[(a.x+x)/2-dy*s,(a.y+y)/2+dx*s]}
 // ---------- nodes
-const SLOTS=[];{const r=rng(42);for(let row=0;row<4;row++)for(let col=0;col<5;col++)SLOTS.push([50+col*96+(row%2?22:-6)+(r()-.5)*14,82+row*60+(r()-.5)*8])}
+const SLOTS=[];{const r=rng(42);for(let row=0;row<4;row++)for(let col=0;col<5;col++)SLOTS.push([50+col*96+(row%2?22:-6)+(r()-.5)*14,44+row*44+(r()-.5)*6])}
 const nodes={};const used=new Set();
 function slotFor(sym){let i=hash(sym)%SLOTS.length;for(let j=0;j<SLOTS.length;j++){const s=(i+j*7)%SLOTS.length;if(!used.has(s)){used.add(s);return s}}
   // evict oldest faded skip
@@ -141,10 +165,11 @@ function renderCard(){const start=D?.start_sol||1;const b=shownBal??start;
   $('wl').textContent=`${st.w}W · ${st.l}L`;
   $('fill').style.width=Math.min(100,b/1.5*100)+'%';$('mark').style.left=(start/1.5*100)+'%';$('startl').textContent=`start ${start.toFixed(3)} SOL`}
 // ---------- panel
-let tab='ag';
+let tab='sc';
 document.querySelectorAll('#tabs div').forEach(d=>d.onclick=()=>{tab=d.dataset.t;document.querySelectorAll('#tabs div').forEach(x=>x.classList.toggle('on',x===d));buildPanel()});
 function buildPanel(){const p=$('panel');
- if(tab==='ag'){p.innerHTML=AG.map(a=>`<div class="ag"><div class="av" style="background:${a.c}">${a.ic}</div><div class="t"><div class="n">${a.n}</div><div class="s" id="s_${a.k}">${a.status}</div></div><div class="st"><b id="v_${a.k}">${a.stat}</b><small id="l_${a.k}">${a.sl}</small></div></div>`).join('')}
+ if(tab==='sc'){renderScan(true)}
+ else if(tab==='ag'){p.innerHTML=AG.map(a=>`<div class="ag"><div class="av" style="background:${a.c}">${a.ic}</div><div class="t"><div class="n">${a.n}</div><div class="s" id="s_${a.k}">${a.status}</div></div><div class="st"><b id="v_${a.k}">${a.stat}</b><small id="l_${a.k}">${a.sl}</small></div></div>`).join('')}
  else if(tab==='tk'){p.innerHTML=`<div class="tr" style="color:#64748b;font-size:11px"><div class="sy">TOKEN</div><span>IN</span><span>OUT</span><span>PNL</span></div>`+st.trades.slice().reverse().slice(0,7).map(t=>`<div class="tr"><div class="sy">$${t.sym}</div><span>${t.in.toFixed(3)}</span><span>${t.out.toFixed(3)}</span><span style="color:${t.closed?(t.out-t.in>=0?'#16a34a':'#dc2626'):'#64748b'}">${t.closed?((t.out/t.in-1)*100).toFixed(1)+'%':'open'}</span></div>`).join('')}
  else{const b=shownBal??0;p.innerHTML=[['Start bankroll',`${(D?.start_sol||0).toFixed(3)} SOL`],['Wallet now',`${b.toFixed(4)} SOL`],['Realized PnL',`${fmt(st.realized)} SOL`],['Trades',`${st.buys} (${st.w}W · ${st.l}L)`],['Best trade',D?.best?`$${D.best.symbol} +${D.best.pct}%`:'—'],['Candidates blocked',`${st.bundle+st.safety}`]].map(([a,b])=>`<div class="tr"><div class="sy" style="color:#64748b">${a}</div><span style="width:auto">${b}</span></div>`).join('')}}
 function setAgent(k,status,stat,sl){const a=A[k];if(status!=null&&status!==a.status){a.status=status;const e=$('s_'+k);if(e){e.textContent=status;e.classList.remove('fl');void e.offsetWidth;e.classList.add('fl')}}
@@ -192,7 +217,7 @@ let REPLAY_SKIP=420,REPLAY_TRADE=1150;
 function goLive(){LIVE=true;$('mode').className='';$('modet').textContent='LIVE';$('clk').textContent=nowWib();if(D){setBal(D.balance_sol);syncLive()}
  for(const k in A){go(k,A[k].home[0],A[k].home[1],1200,Math.random()*300)}}
 function syncLive(){if(!D)return;const f=D.feed||{};
- if(f.creates_total!=null)setAgent('scan',`PumpPortal feed · ${f.creates_total} new tokens · ${f.alive} tracked`,String(st.evaluated.size),'evaluated');
+ if(f.creates_total!=null&&!scanShown.length)setAgent('scan',`PumpPortal feed · ${f.creates_total} new tokens · ${f.alive} tracked`,String(st.evaluated.size),'evaluated');
  const op=D.open||[];
  if(op.length)setAgent('sell',`Holding ${op.map(o=>'$'+o.symbol+(o.pct!=null?` ${o.pct>=0?'+':''}${o.pct.toFixed(0)}%`:'')).join(', ')}`,null);
  else setAgent('sell','No open positions · armed for TP / cut-loss',null);
@@ -208,7 +233,44 @@ async function poll(first){try{const r=await fetch('data.json?_='+Date.now(),{ca
     if(Q.get('replay')==='0'){fresh.forEach(e=>{});}
     queue.push(...fresh);if(!fresh.length)goLive()}
   else{queue.push(...fresh);if(LIVE)syncLive()}
-  renderCard()}catch(err){console.warn(err)}}
+  ingestScan(d,first);renderCard()}catch(err){console.warn(err)}}
+// ---------- live scan (real rows from data.json "scan"; only replayed, never invented)
+const scanSeen=new Set(),scanQ=[],scanShown=[],pings=[];let scanGap=1500,lastScan=0,lastGen=null,genGap=75000;
+const kfmt=v=>v==null?'–':v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+v;
+const TG={new:['NEW','#dbeafe','#1d4ed8'],check:['SCAN','#ede9fe','#6d28d9'],migr:['GRAD','#dcfce7','#15803d'],dead:['DEAD','#f1f5f9','#64748b'],watch:['BOT','#fef3c7','#b45309']};
+function rowDetail(r){
+ if(r.k==='new')return `launched on ${r.pool==='pump'?'pump.fun':(r.pool||'?')} · ${r.dev_sol?'dev buy '+r.dev_sol.toFixed(2)+' SOL':'no dev buy'}${r.rep>1?` · ×${r.rep} same name (spam)`:''}`;
+ if(r.k==='check'){const vc=r.v==='on radar'?['#dcfce7','#15803d']:['#f1f5f9','#475569'];
+  return `<span class="vp" style="background:${vc[0]};color:${vc[1]}">${r.v}</span>MC ${kfmt(r.mc)} · ${r.b5??'–'}B/${r.s5??'–'}S 5m · <span style="color:${(r.chg5||0)>=0?'#16a34a':'#dc2626'}">${r.chg5==null?'–':((r.chg5>=0?'+':'')+r.chg5.toFixed(1)+'%')}</span>${r.dev_sold?' · dev sold':''}`}
+ if(r.k==='migr')return `graduated to ${r.dex||'AMM'} · MC ${kfmt(r.mc)}`;
+ if(r.k==='dead')return `dropped from tracking · peak ${kfmt(r.peak)}`;
+ if(r.k==='watch')return `bot verdict: ${r.why||'re-checked'}`+(r.bundle!=null?` · bundle ${r.bundle}%`:'');return ''}
+const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function rowHtml(r,anim){const t=TG[r.k]||['?','#eee','#333'];return `<div class="sr${anim?' in':''}"><span class="tg" style="background:${t[1]};color:${t[2]}">${t[0]}</span><span class="sy">$${esc(r.sym)}</span><span class="dt">${r.k==='watch'?esc(rowDetail(r)):rowDetail(r)}</span><span class="tm">${wib(r.ts)}</span></div>`}
+function renderScan(full,anim){if(tab!=='sc')return;const p=$('panel');
+ if(full||!p.firstChild||!p.querySelector('.sr')){p.innerHTML=scanShown.slice(-7).reverse().map(r=>rowHtml(r,false)).join('')||'<div class="sr"><span class="dt">Waiting for the bot\'s feed…</span></div>';return}
+ p.insertAdjacentHTML('afterbegin',rowHtml(scanShown[scanShown.length-1],true));while(p.children.length>7)p.lastChild.remove()}
+function ingestScan(d,first){const rows=(d.scan||[]).filter(r=>!scanSeen.has(r.id));rows.forEach(r=>scanSeen.add(r.id));rows.sort((a,b)=>a.ts<b.ts?-1:1);
+ if(d.generated_at&&d.generated_at!==lastGen){if(lastGen){const g=new Date(d.generated_at)-new Date(lastGen);if(g>5000&&g<300000)genGap=g}lastGen=d.generated_at;setCounters(d,first)}
+ if(first){const n=Math.max(0,rows.length-10);scanShown.push(...rows.slice(0,n));scanQ.push(...rows.slice(n));renderScan(true)}else scanQ.push(...rows);
+ // spread the queued real rows evenly over the expected gap until the next data update, so the stream never stalls
+ scanGap=Math.max(350,Math.min(6000,(genGap*0.92)/Math.max(1,scanQ.length)))}
+function pumpScan(now){if(!scanQ.length||now-lastScan<scanGap)return;lastScan=now;const r=scanQ.shift();scanShown.push(r);if(scanShown.length>80)scanShown.shift();renderScan(false,true);
+ const s=SLOTS[hash(r.sym+r.k)%SLOTS.length];const col={new:'#3b82f6',check:'#8b5cf6',migr:'#16a34a',dead:'#94a3b8',watch:'#f59e0b'}[r.k]||'#3b82f6';
+ pings.push({x:s[0]+(hash(r.id)%30-15),y:s[1]+(hash(r.ts)%20-10),c:col,txt:'$'+(r.sym.length>9?r.sym.slice(0,8)+'…':r.sym),t:performance.now()});
+ const ag=r.k==='watch'?'safety':'scan';if(LIVE||!queue.length){go(ag,s[0]-14,s[1]+14,Math.min(900,scanGap*0.8))}
+ const txt=r.k==='new'?`New $${r.sym} · ${r.dev_sol?'dev buy '+r.dev_sol.toFixed(2)+' SOL':'no dev buy'}`:r.k==='check'?`Checking $${r.sym} · MC ${kfmt(r.mc)} · ${r.v}`:r.k==='migr'?`$${r.sym} graduated · MC ${kfmt(r.mc)}`:r.k==='dead'?`$${r.sym} died · peak ${kfmt(r.peak)}`:`$${r.sym}: ${r.why}`;
+ setAgent(ag,txt,ag==='scan'&&D?.hb?.creates_total!=null?String(Math.round(CT.new.v)):null,ag==='scan'?'tokens seen':null)}
+// counters tween from the previous real value to the new real value across the update gap
+const CT={new:{v:null,f:0,t:0,t0:0},mig:{v:null,f:0,t:0,t0:0},alv:{v:null,f:0,t:0,t0:0},msg:{v:null,f:0,t:0,t0:0}};let ctDur=60000,lastHbT=0;
+function setCounters(d,first){const h=d.hb||{};const vals={new:h.creates_total,mig:h.migrations_total,alv:h.tracked_alive,msg:h.msgs_total};ctDur=genGap*0.95;
+ for(const k in vals){const c=CT[k];if(vals[k]==null)continue;if(c.v==null||first){c.v=c.f=c.t=vals[k];continue}c.f=c.v;c.t=vals[k];c.t0=performance.now()}
+ const s=d.stats||[];if(s.length>=2){const a=s[Math.max(0,s.length-11)],b=s[s.length-1];const mins=(new Date(b.t)-new Date(a.t))/60000;if(mins>0)$('c_rate').textContent=`new tokens · ${Math.round((b.creates-a.creates)/mins)}/min`}
+ if(d.sol_usd)$('solp').textContent=`SOL $${(+d.sol_usd).toFixed(2)}`}
+function tickCounters(now){for(const k in CT){const c=CT[k];if(c.v==null)continue;const t=c.t0?Math.min(1,(now-c.t0)/ctDur):1;const nv=c.f+(c.t-c.f)*t;const el=$('c_'+k);const txt=Math.round(nv).toLocaleString('en-US');
+  if(el.textContent!==txt){if(el.textContent!=='–'&&Math.round(nv)>Math.round(c.v)){el.classList.remove('up');void el.offsetWidth;el.classList.add('up')}el.textContent=txt}c.v=nv}
+ if(now-lastHbT>1000&&D){lastHbT=now;const ts=[D.hb?.updated_at,D.watcher_last].filter(Boolean).map(x=>new Date(x).getTime());const ago=ts.length?Math.max(0,(Date.now()-Math.max(...ts))/1000):null;
+  const pl=$('pl');pl.className=ago==null||ago>900?'rd':ago>240?'am':'';$('hbt').textContent=ago==null?'· heartbeat –':`· heartbeat ${ago<90?Math.round(ago)+'s':Math.floor(ago/60)+'m '+Math.round(ago%60)+'s'} ago`}}
 // ---------- drawing
 function drawBg(){const c=document.createElement('canvas');const k=cv.width/MW;c.width=cv.width;c.height=cv.height;const g=c.getContext('2d');g.scale(k,k);
  g.fillStyle='#eef5ee';g.fillRect(0,0,MW,MH);const r=rng(7);
@@ -255,6 +317,12 @@ function frame(now){pump(now);freeSkips();
  for(let i=floats.length-1;i>=0;i--){const f=floats[i];const t=(now-f.t)/1800;if(t>=1){floats.splice(i,1);continue}
   const y=f.y-ease(Math.min(1,t*1.4))*22;const al=t<.75?1:1-(t-.75)/.25;const s=t<.12?ease(t/.12):1;cx.globalAlpha=al;cx.font='800 11.5px Inter';
   const w=cx.measureText(f.txt).width+16;let x=Math.max(w/2+4,Math.min(MW-w/2-4,f.x));cx.save();cx.translate(x,y);cx.scale(s,s);cx.shadowColor='rgba(15,23,42,.15)';cx.shadowBlur=8;rr(-w/2,-11,w,22,11,f.bg);cx.shadowColor='transparent';cx.fillStyle=f.col;cx.textAlign='center';cx.textBaseline='middle';cx.fillText(f.txt,0,.5);cx.restore();cx.globalAlpha=1}
+ // scan pings
+ for(let i=pings.length-1;i>=0;i--){const p=pings[i];const t=(now-p.t)/2200;if(t>=1){pings.splice(i,1);continue}
+  cx.globalAlpha=(1-t)*0.9;cx.strokeStyle=p.c;cx.lineWidth=2;cx.beginPath();cx.arc(p.x,p.y,6+t*26,0,7);cx.stroke();
+  cx.globalAlpha=Math.min(1,(1-t)*1.6);cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x,p.y,4,0,7);cx.fill();
+  cx.font='700 10px Inter';cx.textAlign='center';cx.textBaseline='middle';const w=cx.measureText(p.txt).width+10;rr(p.x-w/2,p.y-24,w,15,7.5,'rgba(255,255,255,.9)');cx.fillStyle='#0f172a';cx.fillText(p.txt,p.x,p.y-16.5);cx.globalAlpha=1}
+ pumpScan(now);tickCounters(now);
  if(LIVE&&now%1000<20)$('clk').textContent=nowWib();
  requestAnimationFrame(frame)}
 document.fonts.ready.then(()=>{sizeCanvas();buildPanel();AG.forEach(a=>setAgent(a.k,'Starting replay…','0',''));setAgent('scan',null,'0','evaluated');renderCard();poll(true);setInterval(()=>poll(false),5000);setInterval(()=>{if(LIVE)$('clk').textContent=nowWib()},1000);requestAnimationFrame(frame)});
